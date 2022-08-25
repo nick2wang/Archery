@@ -71,7 +71,11 @@ class GoInceptionEngine(EngineBase):
         # inception 校验
         check_result.rows = []
         variables, set_session_sql = get_session_variables(instance)
-        inception_sql = f"""/*--user='{user}';--password='{password}';--host='{host}';--port={port};--check=1;*/
+        # 获取real_row_count参数选项
+        archer_config = SysConfig()
+        real_row_count = archer_config.get("real_row_count")
+        affected_rows_option = "--real_row_count=true;" if real_row_count else ""
+        inception_sql = f"""/*--user='{user}';--password='{password}';--host='{host}';--port={port};--check=1;{affected_rows_option}*/
                             inception_magic_start;
                             {set_session_sql}
                             use `{db_name}`;

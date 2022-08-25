@@ -250,6 +250,21 @@
                                 </div>
                             </div>
                             <div class="form-group">
+                                <label for="real_row_count"
+                                       class="col-sm-4 control-label">REAL_ROW_COUNT</label>
+                                <div class="col-sm-8">
+                                    <div class="switch switch-small">
+                                        <label>
+                                            <input id="real_row_count"
+                                                   key="real_row_count"
+                                                   value="{{ config.real_row_count }}"
+                                                   type="checkbox">
+                                            是否通过COUNT(*)获取DML真实受影响行数
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-group">
                                 <label for="manual"
                                        class="col-sm-4 control-label">MANNUAL</label>
                                 <div class="col-sm-8">
