@@ -263,6 +263,11 @@
     </script>
     <!--ace -->
     <script>
+        //自动生成工单名称
+        $(function () {
+            $("#workflow_name").val("{{ request.user.display }}")
+        })
+
         // 实例变更获取数据库补全提示
         $("#instance_name").change(function () {
             var optgroup = $('#instance_name :selected').parent().attr('label');
@@ -334,6 +339,11 @@
                     alert(errorThrown);
                 }
             });
+            //工单名称自动补全
+            let wf_name = $("#workflow_name").val().split(" ", 1);
+            let db_name = $("#db_name").val();
+            wf_name = wf_name + ' - ' + db_name;
+            $("#workflow_name").val(wf_name);
         });
     </script>
     <!--validate -->
@@ -604,7 +614,7 @@
                 },
                 complete: function () {
                     var pathname = window.location.pathname;
-                    if (pathname === "/editsql/") {
+                    if (pathname === "/editsql/" && group_name === sessionStorage.getItem('editGroup')) {
                         //填充实例信息
                         $('#instance_name').selectpicker('val', sessionStorage.getItem('editClustername'));
                         if ($("#instance_name").val()) {
@@ -642,6 +652,11 @@
                             } else if (result[i]['db_type'] === 'clickhouse') {
                                 $("#optgroup-clickhouse").append(instance);
                             }
+                        }
+                        //如果选择的组可上线实例数量为1，则直接选择该实例
+                        if (result.length === 1) {
+                            $("#instance_name").val(result[0]['instance_name']);
+                            $("#instance_name").trigger("change");
                         }
                         $('#instance_name').selectpicker('render');
                         $('#instance_name').selectpicker('refresh');
