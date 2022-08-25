@@ -29,6 +29,14 @@
                 {% endfor %}
             </select>
         </div>
+        <div class="form-group">
+            <select id="syntax_type" class="form-control selectpicker"
+                    data-live-search="true">
+                <option value="" selected="selected">类型</option>
+                <option value="2">DML</option>
+                <option value="1">DDL</option>
+            </select>
+        </div>
         <div class='form-group'>
             <div id="reservation" class="form-control"
                  style="background: #fff; cursor: pointer; padding: 5px 10px; border: 1px solid #ccc; width: 100%">
@@ -179,6 +187,7 @@
                             navStatus: $("#navStatus").val(),
                             instance_id: $("#instance_id").val(),
                             group_id: $("#group_id").val(),
+                            syntax_type: $("#syntax_type").val(),
                             start_date: start_date,
                             end_date: end_date,
                             search: params.search
@@ -190,8 +199,8 @@
                     formatter: function (value, row, index) {
                         var span = document.createElement('span');
                         span.setAttribute('title', value);
-                        if (value.length > 20) {
-                            span.innerHTML = "<a href=\"/detail/" + row.id + "/\">" + value.substr(0, 20) + '...';
+                        if (value.length > 30) {
+                            span.innerHTML = "<a href=\"/detail/" + row.id + "/\">" + value.substr(0, 30) + '...';
                             +"</a>";
                         } else {
                             span.innerHTML = "<a href=\"/detail/" + row.id + "/\">" + value + "</a>";
@@ -345,6 +354,9 @@
             get_workflow_list();
         });
 
+        $("#syntax_type").change(function () {
+            get_workflow_list();
+        });
         //初始化数据
         $(document).ready(function () {
             get_workflow_list();

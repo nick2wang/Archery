@@ -57,6 +57,7 @@ def _sql_workflow_list(request):
     nav_status = request.POST.get("navStatus")
     instance_id = request.POST.get("instance_id")
     resource_group_id = request.POST.get("group_id")
+    syntax_type = request.POST.get('syntax_type')
     start_date = request.POST.get("start_date")
     end_date = request.POST.get("end_date")
     limit = int(request.POST.get("limit", 0))
@@ -77,6 +78,9 @@ def _sql_workflow_list(request):
     # 资源组
     if resource_group_id:
         filter_dict["group_id"] = resource_group_id
+    # sql类型
+    if syntax_type:
+        filter_dict['syntax_type'] = int(syntax_type)
     # 时间
     if start_date and end_date:
         end_date = datetime.datetime.strptime(
