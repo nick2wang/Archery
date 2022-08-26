@@ -614,7 +614,7 @@
                 },
                 complete: function () {
                     var pathname = window.location.pathname;
-                    if (pathname === "/editsql/" && group_name === sessionStorage.getItem('editGroup')) {
+                    if (pathname === "/editsql/" && $("#group_name").val() === sessionStorage.getItem('editGroup')) {
                         //填充实例信息
                         $('#instance_name').selectpicker('val', sessionStorage.getItem('editClustername'));
                         if ($("#instance_name").val()) {
