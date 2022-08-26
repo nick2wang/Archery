@@ -173,18 +173,29 @@
                   placeholder="请填写审核备注/终止原因" rows=3></textarea>
         <br>
     {% endif %}
-    <!--审核人修改可执行时间按钮-->
-    {% if is_can_review %}
-        <form id="from-passed" action="/passed/" method="post" style="display:inline-block;">
+    {% if is_can_review or is_can_execute %}
+            <!--修改备份选项按钮-->
+        <form id="from-backup-option" action="/alter_backup_option/" method="post" style="display:inline-block;">
             {% csrf_token %}
             <input type="hidden" name="workflow_id" value="{{ workflow_detail.id }}">
-            <input type="hidden" id="audit_remark" name="audit_remark" value="">
+            {% if workflow_detail.is_backup %}
+                <input type="hidden" name="backup_option" value=0>
+                <input type="button" id="btnBackupOption" class="btn btn-primary" value="设置不备份"/>
+            {% else %}
+                <input type="hidden" name="backup_option" value=1>
+                <input type="button" id="btnBackupOption" class="btn btn-primary" value="设置备份"/>
+            {% endif %}
+        </form>
+    {% endif %}
+    {% if is_can_review %}
+        <!--审核人修改可执行时间按钮-->
+        <form id="from-executabletime" method="post" style="display:inline-block;">
+            {% csrf_token %}
+            <input type="hidden" name="workflow_id" value="{{ workflow_detail.id }}">
             <input type="button" class="btn btn-info" data-toggle="modal" data-target="#Executabletime"
                    value="可执行时间变更"/>
         </form>
-    {% endif %}
     <!--审核通过按钮-->
-    {% if is_can_review %}
         <form id="from-passed" action="/passed/" method="post" style="display:inline-block;">
             {% csrf_token %}
             <input type="hidden" name="workflow_id" value="{{ workflow_detail.id }}">
@@ -480,6 +491,14 @@
                 formExecuteOnly.submit();
                 loading(this)
             }
+        });
+
+        //设置备份选项
+        $("#btnBackupOption").click(function () {
+            //获取form对象，判断输入，通过则提交
+            var formBackupOption = $("#from-backup-option");
+            loading(this);
+            formBackupOption.submit();
         });
 
         //审核通过

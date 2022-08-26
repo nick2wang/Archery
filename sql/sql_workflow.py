@@ -388,6 +388,37 @@ def alter_run_date(request):
 
 
 @permission_required("sql.sql_review", raise_exception=True)
+def alter_backup_option(request):
+    """
+    修改备份选项
+    :param request:
+    :return:
+    """
+    workflow_id = int(request.POST.get("workflow_id", 0))
+    backup_option = int(request.POST.get("backup_option", 0))
+    if workflow_id == 0:
+        context = {"errMsg": "workflow_id参数为空."}
+        return render(request, "error.html", context)
+
+    user = request.user
+    if not any(
+        [Audit.can_review(user, workflow_id, 2), can_execute(request.user, workflow_id)]
+    ):
+        context = {"errMsg": "你无权操作当前工单！"}
+        return render(request, "error.html", context)
+
+    try:
+        SqlWorkflow(id=workflow_id, is_backup=backup_option).save(
+            update_fields=["is_backup"]
+        )
+    except Exception as msg:
+        context = {"errMsg": msg}
+        return render(request, "error.html", context)
+
+    return HttpResponseRedirect(reverse("sql:detail", args=(workflow_id,)))
+
+
+@permission_required("sql.sql_review", raise_exception=True)
 def passed(request):
     """
     审核通过，不执行
