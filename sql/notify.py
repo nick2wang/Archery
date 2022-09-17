@@ -2,6 +2,7 @@
 import datetime
 import re
 from itertools import chain
+import simplejson as json
 
 from django.contrib.auth.models import Group
 from common.config import SysConfig
@@ -200,6 +201,8 @@ def notify_for_audit(audit_id, **kwargs):
             "\n",
             workflow_detail.sqlworkflowcontent.sql_content[0:500].replace("\r", ""),
         )
+        affected_rows = sum(
+            item["affected_rows"] for item in json.loads(workflow_detail.sqlworkflowcontent.review_content))
     elif workflow_type == WorkflowDict.workflow_type["archive"]:
         workflow_type_display = WorkflowDict.workflow_type["archive_display"]
         workflow_detail = ArchiveConfig.objects.get(pk=workflow_id)
@@ -222,7 +225,7 @@ def notify_for_audit(audit_id, **kwargs):
         msg_cc = Users.objects.filter(username__in=kwargs.get("cc_users", []))
         workflow_status = "audit_wait"
         # 消息内容
-        msg_content = """发起时间：{}\n发起人：{}\n组：{}\n目标实例：{}\n数据库：{}\n审批流程：{}\n当前审批：{}\n工单名称：{}\n工单地址：{}\n工单详情预览：{}\n""".format(
+        msg_content = """发起时间：{}\n发起人：{}\n组：{}\n目标实例：{}\n数据库：{}\n审批流程：{}\n当前审批：{}\n工单名称：{}\n工单地址：{}\n影响行数：{}\n工单详情预览：{}\n""".format(
             workflow_detail.create_time.strftime("%Y-%m-%d %H:%M:%S"),
             workflow_from,
             group_name,
@@ -232,6 +235,7 @@ def notify_for_audit(audit_id, **kwargs):
             current_workflow_auditors,
             workflow_title,
             workflow_url,
+            affected_rows,
             workflow_content,
         )
     elif status == WorkflowDict.workflow_status["audit_success"]:  # 审核通过
@@ -245,7 +249,7 @@ def notify_for_audit(audit_id, **kwargs):
         msg_cc = (dba_user | cc_users).distinct()
         workflow_status = "audit_success"
         # 消息内容
-        msg_content = """发起时间：{}\n发起人：{}\n组：{}\n目标实例：{}\n数据库：{}\n审批流程：{}\n工单名称：{}\n工单地址：{}\n工单详情预览：{}\n""".format(
+        msg_content = """发起时间：{}\n发起人：{}\n组：{}\n目标实例：{}\n数据库：{}\n审批流程：{}\n工单名称：{}\n工单地址：{}\n影响行数：{}\n工单详情预览：{}\n""".format(
             workflow_detail.create_time.strftime("%Y-%m-%d %H:%M:%S"),
             workflow_from,
             group_name,
@@ -254,6 +258,7 @@ def notify_for_audit(audit_id, **kwargs):
             workflow_auditors,
             workflow_title,
             workflow_url,
+            affected_rows,
             workflow_content,
         )
     elif status == WorkflowDict.workflow_status["audit_reject"]:  # 审核驳回
@@ -327,12 +332,14 @@ def notify_for_execute(workflow):
     audit_auth_group, current_audit_auth_group = Audit.review_info(workflow.id, 2)
     audit_id = Audit.detail_by_workflow_id(workflow.id, 2).audit_id
     url = "{base_url}/workflow/{audit_id}".format(base_url=base_url, audit_id=audit_id)
+    affected_rows = sum(
+        item["affected_rows"] for item in json.loads(workflow.sqlworkflowcontent.execute_result))
     msg_title = "[{}]工单{}#{}".format(
         WorkflowDict.workflow_type["sqlreview_display"],
         workflow.get_status_display(),
         audit_id,
     )
-    msg_content = """发起时间：{}\n发起人：{}\n组：{}\n目标实例：{}\n数据库：{}\n审批流程：{}\n工单名称：{}\n工单地址：{}\n工单详情预览：{}\n""".format(
+    msg_content = """发起时间：{}\n发起人：{}\n组：{}\n目标实例：{}\n数据库：{}\n审批流程：{}\n工单名称：{}\n工单地址：{}\n影响行数：{}\n工单详情预览：{}\n""".format(
         workflow.create_time.strftime("%Y-%m-%d %H:%M:%S"),
         workflow.engineer_display,
         workflow.group_name,
@@ -341,6 +348,7 @@ def notify_for_execute(workflow):
         audit_auth_group,
         workflow.workflow_name,
         url,
+        affected_rows,
         re.sub(
             "[\r\n\f]{2,}",
             "\n",
