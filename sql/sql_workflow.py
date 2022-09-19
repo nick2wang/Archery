@@ -205,13 +205,19 @@ def submit(request):
         check_result = check_engine.execute_check(
             db_name=db_name, sql=sql_content.strip()
         )
+        affected_rows_list = [row["affected_rows"] for row in check_result.to_dict()]
     except Exception as e:
         context = {"errMsg": str(e)}
         return render(request, "error.html", context)
 
-    # 未开启备份选项，并且engine支持备份，强制设置备份
+    # 未开启备份选项，并且engine支持备份，且最大影响行数小于max_backup_rows，强制设置备份
     sys_config = SysConfig()
-    if not sys_config.get("enable_backup_switch") and check_engine.auto_backup:
+    max_backup_rows = int(sys_config.get("max_backup_rows", 0))
+    if (
+        not sys_config.get("enable_backup_switch")
+        and check_engine.auto_backup
+        and (max_backup_rows > max(affected_rows_list) or max_backup_rows <= 0)
+    ):
         is_backup = True
 
     # 按照系统配置确定是自动驳回还是放行

@@ -250,6 +250,17 @@
                                 </div>
                             </div>
                             <div class="form-group">
+                                <label for="max_backup_rows"
+                                       class="col-sm-4 control-label">MAX_BACKUP_ROWS</label>
+                                <div class="col-sm-5">
+                                    <input type="number" class="form-control"
+                                           id="max_backup_rows"
+                                           key="max_backup_rows"
+                                           value="{{ config.max_backup_rows }}"
+                                           placeholder="默认最大备份行数(超过该值时将跳过强制备份)">
+                                </div>
+                            </div>
+                            <div class="form-group">
                                 <label for="real_row_count"
                                        class="col-sm-4 control-label">REAL_ROW_COUNT</label>
                                 <div class="col-sm-8">
