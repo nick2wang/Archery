@@ -104,12 +104,13 @@ def sync_ding_user_id():
             resp = requests.get(url, timeout=3).json()
             if resp.get("errcode") == 0:
                 if not resp.get(username2ding):
-                    raise Exception(
+                    logger.error(
                         f"钉钉用户信息不包含{username2ding}字段，无法获取id信息，请确认ding_archery_username配置{resp}"
                     )
-                rs.execute_command(
-                    f"SETEX {resp.get(username2ding).lower()} 86400 {resp.get('userid')}"
-                )
+                else:
+                    rs.execute_command(
+                        f"SETEX {resp.get(username2ding).lower()} 86400 {resp.get('userid')}"
+                    )
             else:
                 raise Exception(f"获取用户信息出错:{resp}")
         except Exception as e:
