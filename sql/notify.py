@@ -11,10 +11,12 @@ from sql.models import (
     SqlWorkflow,
     ResourceGroup,
     ArchiveConfig,
+    WorkflowAudit,
 )
 from sql.utils.resource_group import auth_group_users
 from common.utils.sendmsg import MsgSender
 from common.utils.const import WorkflowDict
+from common.utils import ding_api
 from sql.utils.workflow_audit import Audit
 
 import logging
@@ -63,6 +65,9 @@ def __send(msg_title, msg_content, msg_to, msg_cc=None, **kwargs):
     dingding_webhook = kwargs.get("dingding_webhook")
     feishu_webhook = kwargs.get("feishu_webhook")
     qywx_webhook = kwargs.get("qywx_webhook")
+    workflow_status = kwargs.get("workflow_status")
+    workflow_url = kwargs.get("workflow_url")
+    audit_id = kwargs.get("audit_id")
     msg_to_email = [user.email for user in msg_to if user.email]
     msg_cc_email = [user.email for user in msg_cc if user.email]
     msg_to_ding_user = [
@@ -79,6 +84,29 @@ def __send(msg_title, msg_content, msg_to, msg_cc=None, **kwargs):
         )
     if sys_config.get("ding") and dingding_webhook:
         msg_sender.send_ding(dingding_webhook, msg_title + "\n" + msg_content)
+    if sys_config.get("ding_todo") and audit_id:
+        audit_detail = Audit.detail(audit_id=audit_id)
+        create_user = Users.objects.get(username=audit_detail.create_user)
+        next_audit = audit_detail.next_audit
+        if create_user.ding_user_id:
+            # 1.当前审批人审批结束后更新待办状态；2.存在下一级审批人时，更新上一个待办状态
+            if (
+                workflow_status in ("audit_success", "audit_reject", "audit_abort")
+                or (workflow_status == "audit_wait" and next_audit != -1)
+                and audit_detail.ding_taskid
+            ):
+                ding_api.update_dingding_todo(
+                    audit_detail.ding_taskid, create_user.ding_user_id
+                )
+            # 工单为待审批状态时，创建待办
+            if workflow_status == "audit_wait" and msg_to_ding_user:
+                task_id = ding_api.add_dingding_todo(
+                    msg_title, workflow_url, create_user.ding_user_id, msg_to_ding_user
+                )
+                WorkflowAudit.objects.filter(
+                    workflow_id=audit_detail.workflow_id
+                ).update(ding_taskid=task_id)
+
     if sys_config.get("ding_to_person"):
         msg_sender.send_ding2user(msg_to_ding_user, msg_title + "\n" + msg_content)
     if sys_config.get("wx"):
@@ -193,6 +221,7 @@ def notify_for_audit(audit_id, **kwargs):
         auth_group_names = Group.objects.get(id=audit_detail.current_audit).name
         msg_to = auth_group_users([auth_group_names], audit_detail.group_id)
         msg_cc = Users.objects.filter(username__in=kwargs.get("cc_users", []))
+        workflow_status = "audit_wait"
         # 消息内容
         msg_content = """发起时间：{}\n发起人：{}\n组：{}\n目标实例：{}\n数据库：{}\n审批流程：{}\n当前审批：{}\n工单名称：{}\n工单地址：{}\n工单详情预览：{}\n""".format(
             workflow_detail.create_time.strftime("%Y-%m-%d %H:%M:%S"),
@@ -211,6 +240,7 @@ def notify_for_audit(audit_id, **kwargs):
         # 接收人，仅发送给申请人
         msg_to = [Users.objects.get(username=audit_detail.create_user)]
         msg_cc = Users.objects.filter(username__in=kwargs.get("cc_users", []))
+        workflow_status = "audit_success"
         # 消息内容
         msg_content = """发起时间：{}\n发起人：{}\n组：{}\n目标实例：{}\n数据库：{}\n审批流程：{}\n工单名称：{}\n工单地址：{}\n工单详情预览：{}\n""".format(
             workflow_detail.create_time.strftime("%Y-%m-%d %H:%M:%S"),
@@ -228,6 +258,7 @@ def notify_for_audit(audit_id, **kwargs):
         # 接收人，仅发送给申请人
         msg_to = [Users.objects.get(username=audit_detail.create_user)]
         msg_cc = Users.objects.filter(username__in=kwargs.get("cc_users", []))
+        workflow_status = "audit_reject"
         # 消息内容
         msg_content = """发起时间：{}\n目标实例：{}\n数据库：{}\n工单名称：{}\n工单地址：{}\n驳回原因：{}\n提醒：此工单被审核不通过，请按照驳回原因进行修改！""".format(
             workflow_detail.create_time.strftime("%Y-%m-%d %H:%M:%S"),
@@ -246,6 +277,7 @@ def notify_for_audit(audit_id, **kwargs):
         ]
         msg_to = auth_group_users(auth_group_names, audit_detail.group_id)
         msg_cc = Users.objects.filter(username__in=kwargs.get("cc_users", []))
+        workflow_status = "audit_abort"
         # 消息内容
         msg_content = """发起时间：{}\n发起人：{}\n组：{}\n目标实例：{}\n数据库：{}\n工单名称：{}\n工单地址：{}\n终止原因：{}""".format(
             workflow_detail.create_time.strftime("%Y-%m-%d %H:%M:%S"),
@@ -258,6 +290,7 @@ def notify_for_audit(audit_id, **kwargs):
             re.sub("[\r\n\f]{2,}", "\n", workflow_audit_remark),
         )
     else:
+        workflow_status = "others"
         raise Exception("工单状态不正确")
     logger.info(f"通知Debug{msg_to}{msg_cc}")
     # 发送通知
@@ -269,6 +302,9 @@ def notify_for_audit(audit_id, **kwargs):
         feishu_webhook=feishu_webhook,
         dingding_webhook=dingding_webhook,
         qywx_webhook=qywx_webhook,
+        audit_id=audit_id,
+        workflow_url=workflow_url,
+        workflow_status=workflow_status,
     )
 
 

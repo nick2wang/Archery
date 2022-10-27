@@ -326,6 +326,7 @@ class WorkflowAudit(models.Model):
     create_user_display = models.CharField("申请人中文名", max_length=50, default="")
     create_time = models.DateTimeField("申请时间", auto_now_add=True)
     sys_time = models.DateTimeField("系统时间", auto_now=True)
+    ding_taskid = models.CharField("钉钉待办taskid", max_length=48, null=True, blank=True, default="")
 
     def __int__(self):
         return self.audit_id

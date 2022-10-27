@@ -40,6 +40,75 @@ def get_access_token():
         return None
 
 
+def get_unionid_by_userid(userid):
+    """通过userid获取unionid"""
+    access_token = get_access_token()
+    url = f"https://oapi.dingtalk.com/user/get?access_token={access_token}&userid={userid}"
+    resp = requests.get(url, timeout=3).json()
+    if resp.get("errcode") == 0:
+        unionid = resp.get("unionid")
+        return unionid
+    else:
+        logger.error(f"获取钉钉用户unionid出错:{resp}")
+        return None
+
+
+def add_dingding_todo(title, workflow_url, user_from, user_to):
+    """创建钉钉待办事项"""
+    access_token = get_access_token()
+    unionid_creator = get_unionid_by_userid(user_from)
+    unionid_to = [get_unionid_by_userid(userid) for userid in user_to]
+    api_url = f"https://api.dingtalk.com/v1.0/todo/users/{unionid_creator}/tasks"
+    data = {
+        "subject": title,
+        "creatorId": unionid_creator,
+        "executorIds": unionid_to,
+        "detailUrl": {
+            "appUrl": f"dingtalk://dingtalkclient/page/link?url={workflow_url}&pc_slide=false",
+            "pcUrl": f"dingtalk://dingtalkclient/page/link?url={workflow_url}&pc_slide=false",
+        },
+        "isOnlyShowExecutor": "true",
+        "priority": 20,
+        "notifyConfigs": {"dingNotify": "1"},
+    }
+    headers = {
+        "Content-Type": "application/json",
+        "x-acs-dingtalk-access-token": access_token,
+    }
+    resp = requests.post(url=api_url, json=data, headers=headers, timeout=5)
+    resp_json = resp.json()
+    logger.info(resp_json)
+    if resp.status_code == 200:
+        taskid = resp_json.get("id")
+        return taskid
+    else:
+        logger.error(f"创建钉钉待办出错:{resp}")
+        return None
+
+
+def update_dingding_todo(taskid, user_from):
+    """更新钉钉待办事项"""
+    access_token = get_access_token()
+    unionid_creator = get_unionid_by_userid(user_from)
+    api_url = (
+        f"https://api.dingtalk.com/v1.0/todo/users/{unionid_creator}/tasks/{taskid}"
+    )
+    data = {"done": "true"}
+    headers = {
+        "Content-Type": "application/json",
+        "x-acs-dingtalk-access-token": access_token,
+    }
+    resp = requests.put(url=api_url, json=data, headers=headers, timeout=5)
+    resp_json = resp.json()
+    logger.info(resp_json)
+    if resp.status_code == 200:
+        result = resp_json.get("result")
+        return result
+    else:
+        logger.error(f"更新钉钉待办出错:{resp}")
+        return None
+
+
 def get_ding_user_id(username):
     """更新用户ding_user_id"""
     try:
