@@ -121,6 +121,7 @@
                     "全部": [null, null],
                     "今日": [moment().startOf('day'), moment()],
                     "昨日": [moment().subtract('days', 1).startOf('day'), moment().subtract('days', 1).endOf('day')],
+                    "本周": [moment().weekday('1').startOf('days'), moment().weekday('7')],
                     "最近7日": [moment().subtract('days', 6), moment()],
                     "最近30日": [moment().subtract('days', 29), moment()],
                     "本月": [moment().startOf("month"), moment().endOf("month")],
