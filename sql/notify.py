@@ -93,8 +93,7 @@ def __send(msg_title, msg_content, msg_to, msg_cc=None, **kwargs):
             if (
                 workflow_status in ("audit_success", "audit_reject", "audit_abort")
                 or (workflow_status == "audit_wait" and next_audit != -1)
-                and audit_detail.ding_taskid
-            ):
+            ) and audit_detail.ding_taskid:
                 ding_api.update_dingding_todo(
                     audit_detail.ding_taskid, create_user.ding_user_id
                 )
