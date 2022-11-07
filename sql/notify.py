@@ -236,9 +236,11 @@ def notify_for_audit(audit_id, **kwargs):
         )
     elif status == WorkflowDict.workflow_status["audit_success"]:  # 审核通过
         msg_title = "[{}]工单审核通过#{}".format(workflow_type_display, audit_id)
-        # 接收人，仅发送给申请人
+        # 接收人，发送给申请人，并抄送DBA
+        dba_user = auth_group_users(auth_group_names=["DBA"], group_id=audit_detail.group_id)
+        cc_users = Users.objects.filter(username__in=kwargs.get("cc_users", []))
         msg_to = [Users.objects.get(username=audit_detail.create_user)]
-        msg_cc = Users.objects.filter(username__in=kwargs.get("cc_users", []))
+        msg_cc = (dba_user | cc_users).distinct()
         workflow_status = "audit_success"
         # 消息内容
         msg_content = """发起时间：{}\n发起人：{}\n组：{}\n目标实例：{}\n数据库：{}\n审批流程：{}\n工单名称：{}\n工单地址：{}\n工单详情预览：{}\n""".format(
