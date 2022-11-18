@@ -219,6 +219,11 @@ def submit(request):
         and (max_backup_rows > max(affected_rows_list) or max_backup_rows <= 0)
     ):
         is_backup = True
+        if check_engine.name == "MySQL":
+            log_bin = check_engine.get_variables(["log_bin"]).rows[0][1]
+            # MySQL没开启binlog则不备份
+            if log_bin.upper() == "OFF":
+                is_backup = False
 
     # 按照系统配置确定是自动驳回还是放行
     auto_review_wrong = sys_config.get(
