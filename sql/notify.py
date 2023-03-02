@@ -165,6 +165,8 @@ def notify_for_audit(audit_id, **kwargs):
         audit_detail.workflow_id, audit_detail.workflow_type
     )
 
+    affected_rows = 0
+
     # 准备消息内容
     if workflow_type == WorkflowDict.workflow_type["query"]:
         workflow_type_display = WorkflowDict.workflow_type["query_display"]
@@ -199,7 +201,7 @@ def notify_for_audit(audit_id, **kwargs):
         workflow_content = re.sub(
             "[\r\n\f]{2,}",
             "\n",
-            workflow_detail.sqlworkflowcontent.sql_content[0:500].replace("\r", ""),
+            workflow_detail.sqlworkflowcontent.sql_content[0:200].replace("\r", ""),
         )
         affected_rows = sum(
             item["affected_rows"] for item in json.loads(workflow_detail.sqlworkflowcontent.review_content))
@@ -352,7 +354,7 @@ def notify_for_execute(workflow):
         re.sub(
             "[\r\n\f]{2,}",
             "\n",
-            workflow.sqlworkflowcontent.sql_content[0:500].replace("\r", ""),
+            workflow.sqlworkflowcontent.sql_content[0:200].replace("\r", ""),
         ),
     )
     # 邮件通知申请人，抄送DBA
@@ -391,7 +393,7 @@ def notify_for_execute(workflow):
                 workflow.db_name,
                 workflow.workflow_name,
                 url,
-                workflow.sqlworkflowcontent.sql_content[0:500],
+                workflow.sqlworkflowcontent.sql_content[0:200],
             )
             # 获取通知成员ddl_notify_auth_group
             ddl_notify_auth_group = sys_config.get("ddl_notify_auth_group", "").split(
