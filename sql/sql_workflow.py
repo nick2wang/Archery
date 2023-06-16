@@ -210,13 +210,13 @@ def submit(request):
         context = {"errMsg": str(e)}
         return render(request, "error.html", context)
 
-    # 未开启备份选项，并且engine支持备份，且最大影响行数小于max_backup_rows，强制设置备份
+    # 未开启备份选项，并且engine支持备份，且工单总影响行数小于max_backup_rows，强制设置备份
     sys_config = SysConfig()
     max_backup_rows = int(sys_config.get("max_backup_rows", 0))
     if (
         not sys_config.get("enable_backup_switch")
         and check_engine.auto_backup
-        and (max_backup_rows > max(affected_rows_list) or max_backup_rows <= 0)
+        and (max_backup_rows > sum(affected_rows_list) or max_backup_rows <= 0)
     ):
         is_backup = True
         if check_engine.name == "MySQL":
