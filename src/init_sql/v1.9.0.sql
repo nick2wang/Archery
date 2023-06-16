@@ -17,3 +17,10 @@ CREATE TABLE `2fa_config_new` (
 insert into `2fa_config_new`(id,username,auth_type,secret_key,user_id) select id,username,auth_type,secret_key,user_id from 2fa_config;
 rename table `2fa_config` to `2fa_config_old`, `2fa_config_new` to `2fa_config`;
 drop table `2fa_config_old`;
+
+-- instance_account表调整唯一索引
+set @drop_sql=(select concat('alter table instance_account drop index ', constraint_name) from information_schema.table_constraints where table_schema=database() and table_name='instance_account' and constraint_type='UNIQUE');
+prepare stmt from @drop_sql;
+execute stmt;
+drop prepare stmt;
+alter table instance_account add unique index uidx_instanceid_user_host_dbname(`instance_id`, `user`, `host`, `db_name`);
