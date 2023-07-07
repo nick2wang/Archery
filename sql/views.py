@@ -634,3 +634,9 @@ def audit_sqlworkflow(request):
             "resource_group": resource_group,
         },
     )
+
+
+@superuser_required
+def session(request):
+    """用户session管理页面"""
+    return render(request, "session.html")

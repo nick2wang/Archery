@@ -11,7 +11,7 @@ from drf_spectacular.views import (
     SpectacularRedocView,
     SpectacularSwaggerView,
 )
-from . import api_user, api_instance, api_workflow
+from . import api_user, api_instance, api_workflow, api_common
 
 router = routers.DefaultRouter()
 
@@ -51,6 +51,8 @@ urlpatterns = [
     path("v1/workflow/auditlist/", api_workflow.WorkflowAuditList.as_view()),
     path("v1/workflow/execute/", api_workflow.ExecuteWorkflow.as_view()),
     path("v1/workflow/log/", api_workflow.WorkflowLogList.as_view()),
+    path("v1/session/", api_common.SessionView.as_view({"get": "list"})),
+    path("v1/session/terminate/", api_common.SessionView.as_view({"post": "terminate"})),
     path("info", views.info),
     path("debug", views.debug),
     path("do_once/mirage", views.mirage),

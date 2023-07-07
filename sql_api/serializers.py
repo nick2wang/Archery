@@ -1,3 +1,4 @@
+from django.contrib.sessions.models import Session
 from rest_framework import serializers
 from sql.models import (
     Users,
@@ -22,6 +23,7 @@ from sql.utils.resource_group import user_instances
 from sql.notify import notify_for_audit
 from common.utils.const import WorkflowDict
 from common.config import SysConfig
+from mirage.crypto import Crypto
 import traceback
 import logging
 
@@ -545,3 +547,16 @@ class ExecuteWorkflowSerializer(serializers.Serializer):
             raise serializers.ValidationError({"errors": "不存在该工单"})
 
         return attrs
+
+
+class SessionDeleteSerializer(serializers.Serializer):
+    encrypted_session_key = serializers.CharField()
+
+    def validate_encrypted_session_key(self, encrypted_session_key):
+        try:
+            decrypted_session_key = Crypto().decrypt(encrypted_session_key)
+            Session.objects.get(session_key=decrypted_session_key)
+        except Session.DoesNotExist:
+            raise serializers.ValidationError({"errors": "不存在该会话"})
+
+        return encrypted_session_key

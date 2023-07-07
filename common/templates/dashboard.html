@@ -3,7 +3,6 @@
 {% load cache %}
 
 {% block content %}
-    {% cache 600 dashboard %}
         <!-- /.row -->
         <div class="row">
             <div class="col-lg-3 col-md-6">
@@ -58,12 +57,12 @@
                                 <i class="fa fa-user fa-5x"></i>
                             </div>
                             <div class="col-xs-9 text-right">
-                                <div class="huge">{{ count_stats.user_cnt }}</div>
-                                <div>平台用户</div>
+                                <div class="huge">{{ count_stats.online_user_cnt }}</div>
+                                <div>平台在线用户</div>
                             </div>
                         </div>
                     </div>
-                    <a href="/admin/sql/users/">
+                    <a href="/session/">
                         <div class="panel-footer">
                             <span class="pull-left">更多</span>
                             <span class="pull-right"><i class="fa fa-arrow-circle-right"></i></span>
@@ -193,5 +192,4 @@
             <!-- /.col-lg-4 -->
         </div>
         <!-- /.row -->
-    {% endcache %}
 {% endblock content %}

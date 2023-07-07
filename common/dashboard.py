@@ -1,11 +1,12 @@
 # -*- coding: UTF-8 -*-
 from django.contrib.auth.decorators import permission_required
+from django.contrib.sessions.models import Session
 from django.shortcuts import render
 
-from sql.models import SqlWorkflow, QueryPrivilegesApply, Users, Instance
+from sql.models import SqlWorkflow, QueryPrivilegesApply, Instance
 
 from common.utils.chart_dao import ChartDao
-from datetime import date
+from datetime import date, datetime
 from dateutil.relativedelta import relativedelta
 from pyecharts.globals import CurrentConfig
 from pyecharts import options as opts
@@ -166,10 +167,16 @@ def pyecharts(request):
     }
 
     # 获取统计数据
+    online_sessions = Session.objects.filter(expire_date__gt=datetime.now())
+    online_sessions_list = list()
+    for s in online_sessions:
+        extra = s.get_decoded()
+        online_sessions_list.append(extra.get("_auth_user_id"))
+
     dashboard_count_stats = {
         "sql_wf_cnt": SqlWorkflow.objects.count(),
         "query_wf_cnt": QueryPrivilegesApply.objects.count(),
-        "user_cnt": Users.objects.count(),
+        "online_user_cnt": len(set(online_sessions_list)),
         "ins_cnt": Instance.objects.count(),
     }
 

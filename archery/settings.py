@@ -142,7 +142,7 @@ AUTH_PASSWORD_VALIDATORS = [
 ############### 以下部分需要用户根据自己环境自行修改 ###################
 
 # SESSION 设置
-SESSION_COOKIE_AGE = 60 * 300  # 300分钟
+SESSION_COOKIE_AGE = 60 * 60 * 24 * 2  # 2天
 SESSION_SAVE_EVERY_REQUEST = True
 SESSION_EXPIRE_AT_BROWSER_CLOSE = True  # 关闭浏览器，则COOKIE失效
 

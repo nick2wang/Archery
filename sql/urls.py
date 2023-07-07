@@ -165,4 +165,5 @@ urlpatterns = [
     path("audit/input/", audit_log.audit_input),
     path("user/list/", user.lists),
     path("user/qrcode/<str:data>/", totp.generate_qrcode),
+    path("session/", views.session),
 ]
