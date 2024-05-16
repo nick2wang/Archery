@@ -662,19 +662,21 @@ class MysqlEngine(EngineBase):
         """
         return self.inc_engine.osc_control(**kwargs)
 
-    def processlist(self, command_type):
+    def processlist(self, db_name, command_type):
         """获取连接信息"""
-        base_sql = "select id, user, host, db, command, time, state, ifnull(info,'') as info from information_schema.processlist"
+        base_sql = "select id, user, host, db, command, time, state, ifnull(info,'') as info from information_schema.processlist where 1=1"
         # escape
         command_type = MySQLdb.escape_string(command_type).decode("utf-8")
         if not command_type:
             command_type = "Query"
         if command_type == "All":
-            sql = base_sql + ";"
+            sql = base_sql + ""
         elif command_type == "Not Sleep":
-            sql = "{} where command<>'Sleep';".format(base_sql)
+            sql = "{} and command<>'Sleep'".format(base_sql)
         else:
-            sql = "{} where command= '{}';".format(base_sql, command_type)
+            sql = "{} and command= '{}'".format(base_sql, command_type)
+
+        sql += " and db='{}'".format(db_name) if db_name else ""
 
         return self.query("information_schema", sql)
 
@@ -707,8 +709,9 @@ class MysqlEngine(EngineBase):
             kill_sql = kill_sql + row[0]
         return self.execute("information_schema", kill_sql)
 
-    def tablesapce(self, offset=0, row_count=14):
+    def tablesapce(self, db_name, sort, order, offset=0, row_count=14):
         """获取表空间信息"""
+        db_filter = "and table_schema='{}'".format(db_name) if db_name else ""
         sql = """
         SELECT
           table_schema AS table_schema,
@@ -722,18 +725,20 @@ class MysqlEngine(EngineBase):
           TRUNCATE(data_free/(data_length+index_length+data_free)*100,2) AS pct_free
         FROM information_schema.tables 
         WHERE table_schema NOT IN ('information_schema', 'performance_schema', 'mysql', 'test', 'sys')
-          ORDER BY total_size DESC 
+          {}
+          ORDER BY {} {} 
         LIMIT {},{};""".format(
-            offset, row_count
+            db_filter, sort, order, offset, row_count
         )
         return self.query("information_schema", sql)
 
-    def tablesapce_num(self):
+    def tablesapce_num(self, db_name):
         """获取表空间数量"""
+        db_filter = "and table_schema='{}'".format(db_name) if db_name else ""
         sql = """
         SELECT count(*)
         FROM information_schema.tables 
-        WHERE table_schema NOT IN ('information_schema', 'performance_schema', 'mysql', 'test', 'sys')"""
+        WHERE table_schema NOT IN ('information_schema', 'performance_schema', 'mysql', 'test', 'sys') {}""".format(db_filter)
         return self.query("information_schema", sql)
 
     def trxandlocks(self):

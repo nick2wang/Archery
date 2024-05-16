@@ -29,6 +29,16 @@
                         <optgroup id="optgroup-oracle" label="Oracle"></optgroup>
                 </select>
             </div>
+            <div id="dbname-div" class="form-group">
+                <select id="db_name" name="db_name"
+                        class="form-control selectpicker show-tick bs-select-hidden"
+                        data-name="数据库" data-placeholder="请选择数据库！"
+                        data-live-search="true"  data-live-search-placeholder="搜索要提交的数据库"
+                        title="请选择数据库"
+                        required>
+                    <option value="is-empty" disabled="" selected="selected">请选择数据库:</option>
+                </select>
+            </div>
             <div id="command-div" class="form-group">
                 <select id="command" class="form-control selectpicker" name="command_type" title="command类型">
                     <!--option value="All">All</option>
@@ -370,7 +380,8 @@
                     queryParams: function (params) {
                         return {
                             instance_name: $("#instance_name").val(),
-                            command_type: $("#command").val()
+                            command_type: $("#command").val(),
+                            db_name: $("#db_name").val()
                         }
                     },
                     columns: processListColumns,
@@ -399,7 +410,8 @@
                 'mysql',
                 [{
                      title: '数据库',
-                     field: 'table_schema'
+                     field: 'table_schema',
+                     sortable: true
                  }, {
                      title: '表名',
                      field: 'table_name'
@@ -408,22 +420,28 @@
                      field: 'engine'
                  }, {
                      title: '总空间(MB)',
-                     field: 'total_size'
+                     field: 'total_size',
+                     sortable: true
                  }, {
                      title: '行数',
-                     field: 'table_rows'
+                     field: 'table_rows',
+                     sortable: true
                  }, {
                      title: '数据空间(MB)',
-                     field: 'data_size'
+                     field: 'data_size',
+                     sortable: true
                  }, {
                      title: '索引空间(MB)',
-                     field: 'index_size'
+                     field: 'index_size',
+                     sortable: true
                  }, {
                      title: '碎片空间(MB)',
-                     field: 'data_free'
+                     field: 'data_free',
+                     sortable: true
                  }, {
                      title: '碎片率(%)',
-                     field: 'pct_free'
+                     field: 'pct_free',
+                     sortable: true
                  }]
             ],
             [
@@ -491,7 +509,10 @@
                         return {
                             offset: params.offset,
                             limit: params.limit,
-                            instance_name: $("#instance_name").val()
+                            instance_name: $("#instance_name").val(),
+                            sortName: params.sort,
+                            sortOrder: params.order,
+                            db_name: $("#db_name").val()
                         }
                     },
                     columns: tablespaceListColumns,
@@ -927,6 +948,56 @@
             }
         }
 
+        function get_databases() {
+            $.ajax({
+                type: "get",
+                url: "/instance/instance_resource/",
+                dataType: "json",
+                data: {
+                    instance_name: $("#instance_name").val(),
+                    resource_type: "database"
+                },
+                complete: function () {
+                    $("#db_name").selectpicker('val', sessionStorage.getItem('editDbname'));
+                    if ($("#db_name").val()) {
+                        $("#db_name").selectpicker().trigger("change");
+                    }
+                },
+                success: function (data) {
+                    if (data.status === 0) {
+                        var result = data.data;
+                        $("#db_name").empty();
+                        $("#db_name").append("<option value=''>全部</option>");
+                        for (var i = 0; i < result.length; i++) {
+                            var name = "<option value=\"" + result[i] + "\">" + result[i] + "</option>";
+                            $("#db_name").append(name);
+                        }
+                        $('#db_name').selectpicker('render');
+                        $('#db_name').selectpicker('refresh');
+                    } else {
+                        alert(data.msg);
+                    }
+                },
+                error: function (XMLHttpRequest, textStatus, errorThrown) {
+                    alert(errorThrown);
+                }
+            });
+        }
+
+        $("#db_name").change(function () {
+            allInstances.forEach((instanceInfo,i) => {
+                if (instanceInfo["instance_name"] === $("#instance_name").val()) {
+                    db_type = instanceInfo["db_type"];
+                }
+            })
+            var active_li_id = sessionStorage.getItem('diagnostic_active_li_id');
+            if (db_type === "mysql" && active_li_id === 'process_tab') {
+                get_process_list()
+            } else if (db_type === "mysql" && active_li_id === 'space_tab') {
+                get_space_list()
+            }
+        })
+
         var allInstances = NaN;
         $(document).ready(function () {
                 //获取用户实例列表
@@ -986,6 +1057,17 @@
                 sessionStorage.setItem('diagnostic_active_li_id', active_li_id);
                 //当前激活的标签id
                 if ($("#instance_name").val()) {
+                    allInstances.forEach((instanceInfo,i) => {
+                        if (instanceInfo["instance_name"] === $("#instance_name").val()) {
+                            db_type = instanceInfo["db_type"];
+                        }
+                    })
+                    if (db_type === "mysql" && (active_li_id === 'process_tab' || active_li_id === 'space_tab')) {
+                        get_databases()
+                        $("#dbname-div").show()
+                    } else {
+                        $("#dbname-div").hide()
+                    }
                     if (active_li_id === 'process_tab') {
                         get_process_list();
                     } else if (active_li_id === 'space_tab') {
@@ -1041,6 +1123,12 @@
             
             sessionStorage.setItem('diagnostic_instance_name', $("#instance_name").val());
             var active_li_id = sessionStorage.getItem('diagnostic_active_li_id');
+            if (db_type === "mysql" && (active_li_id === 'process_tab' || active_li_id === 'space_tab')) {
+                get_databases()
+                $("#dbname-div").show()
+            } else {
+                $("#dbname-div").hide()
+            }
             if (active_li_id === 'process_tab') {
                 get_process_list();
             } else if (active_li_id === 'space_tab') {

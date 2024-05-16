@@ -28,6 +28,7 @@ logger = logging.getLogger("default")
 def process(request):
     instance_name = request.POST.get("instance_name")
     command_type = request.POST.get("command_type")
+    db_name = request.POST.get("db_name")
 
     try:
         instance = user_instances(request.user).get(instance_name=instance_name)
@@ -42,7 +43,7 @@ def process(request):
         if AliyunRdsConfig.objects.filter(instance=instance, is_enable=True).exists():
             result = aliyun_process_status(request)
         else:
-            query_result = query_engine.processlist(command_type)
+            query_result = query_engine.processlist(db_name, command_type)
 
     elif instance.db_type == "mongo":
         query_result = query_engine.current_op(command_type)
@@ -157,6 +158,9 @@ def tablesapce(request):
     instance_name = request.POST.get("instance_name")
     offset = int(request.POST.get("offset", 0))
     limit = int(request.POST.get("limit", 14))
+    sort = request.POST.get("sortName")
+    order = request.POST.get("sortOrder")
+    db_name = request.POST.get("db_name")
     try:
         instance = user_instances(request.user).get(instance_name=instance_name)
     except Instance.DoesNotExist:
@@ -169,8 +173,8 @@ def tablesapce(request):
         if AliyunRdsConfig.objects.filter(instance=instance, is_enable=True).exists():
             result = aliyun_sapce_status(request)
         else:
-            query_result = query_engine.tablesapce(offset, limit)
-            r = query_engine.tablesapce_num()
+            query_result = query_engine.tablesapce(db_name, sort, order, offset, limit)
+            r = query_engine.tablesapce_num(db_name)
             total = r.rows[0][0]
     elif instance.db_type == "oracle":
         query_result = query_engine.tablespace(offset, limit)
