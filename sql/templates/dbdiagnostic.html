@@ -36,7 +36,6 @@
                         data-live-search="true"  data-live-search-placeholder="搜索要提交的数据库"
                         title="请选择数据库"
                         required>
-                    <option value="is-empty" disabled="" selected="selected">请选择数据库:</option>
                 </select>
             </div>
             <div id="command-div" class="form-group">
@@ -975,6 +974,8 @@
                         $('#db_name').selectpicker('render');
                         $('#db_name').selectpicker('refresh');
                     } else {
+                        $("#db_name").empty();
+                        $('#db_name').selectpicker('refresh');
                         alert(data.msg);
                     }
                 },
