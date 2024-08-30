@@ -14,15 +14,15 @@ chmod +x soar
 curl -L -q https://raw.githubusercontent.com/liuhr/my2sql/master/releases/centOS_release_7.x/my2sql -o my2sql
 chmod +x my2sql
 #mongo
-curl -L -q -o mongodb-linux-x86_64-rhel70-3.6.20.tgz https://fastdl.mongodb.org/linux/mongodb-linux-x86_64-rhel70-3.6.20.tgz
-tar -xvf mongodb-linux-x86_64-rhel70-3.6.20.tgz
-mv /data/mongodb-linux-x86_64-rhel70-3.6.20/bin/mongo /usr/local/bin/
+curl -L -q -o mongodb-linux-x86_64-debian11-5.0.8.tgz https://fastdl.mongodb.org/linux/mongodb-linux-x86_64-debian11-5.0.8.tgz
+tar -xvf mongodb-linux-x86_64-debian11-5.0.8.tgz
+mv /data/mongodb-linux-x86_64-debian11-5.0.8/bin/mongo /usr/local/bin/
 chmod +x /usr/local/bin/mongo
 rm -rf /data/mongodb*
 #oracle client
 mkdir -p /data/oracle
 cd /data/oracle
-curl -q -L -o oracle-install.zip https://download.oracle.com/otn_software/linux/instantclient/1921000/instantclient-basic-linux.x64-19.21.0.0.0dbru.zip
+curl -q -L --limit-rate 4096k -o oracle-install.zip https://download.oracle.com/otn_software/linux/instantclient/1921000/instantclient-basic-linux.x64-19.21.0.0.0dbru.zip
 unzip oracle-install.zip
 apt-get update
 apt-get install libaio1 -y
