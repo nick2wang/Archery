@@ -334,7 +334,7 @@ class MongoEngine(EngineBase):
                         sql=sql,
                         auth_db=auth_db,
                     )
-                logger.error("mongo执行cmd：" + cmd)
+                logger.warning("mongo执行cmd：" + cmd)
                 p = subprocess.Popen(
                     cmd,
                     shell=True,
@@ -422,11 +422,11 @@ class MongoEngine(EngineBase):
                 try:
                     # DeprecationWarning: time.clock has been deprecated in Python 3.3 and will be removed from Python 3.8: use time.perf_counter or time.process_time instead
                     start = time.perf_counter()
-                    logger.error("执行语句：" + exec_sql)
+                    logger.warning("执行语句：" + exec_sql)
                     r = self.exec_cmd(exec_sql, db_name)
                     end = time.perf_counter()
                     line += 1
-                    logger.error("执行结果1：" + r)
+                    logger.warning("执行结果1：" + r)
                     # 如果执行中有错误
                     rz = r.replace(" ", "").replace('"', "")
                     tr = 1
@@ -454,6 +454,9 @@ class MongoEngine(EngineBase):
                         )
                     else:
                         try:
+                            r_lines = r.split("\n")
+                            if len(r_lines) > 1:
+                                r = r_lines[-1]
                             r = json.loads(r)
                         except Exception as e:
                             logger.info(str(e))

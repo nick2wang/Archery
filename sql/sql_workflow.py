@@ -108,7 +108,10 @@ def _sql_workflow_list(request):
     # 过滤搜索项，模糊检索项包括提交人名称、工单名
     if search:
         workflow = workflow.filter(
-            Q(engineer_display__icontains=search) | Q(workflow_name__icontains=search)
+            Q(engineer_display__icontains=search)
+            | Q(workflow_name__icontains=search)
+            | Q(sqlworkflowcontent__sql_content__icontains=search)
+            | Q(db_name__icontains=search)
         )
 
     count = workflow.count()
