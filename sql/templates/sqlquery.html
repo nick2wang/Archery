@@ -80,6 +80,7 @@
                                     <optgroup id="optgroup-phoenix" label="Phoenix"></optgroup>
                                     <optgroup id="optgroup-odps" label="ODPS"></optgroup>
                                     <optgroup id="optgroup-clickhouse" label="ClickHouse"></optgroup>
+                                    <optgroup id="optgroup-doris" label="Doris"></optgroup>
                                 </select>
                             </div>
                             <div class="form-group">
@@ -955,6 +956,11 @@
                 if (sql === 'explain') {
                     sqlContent = 'explain ' + sqlContent
                 }
+            } else if (optgroup === "Doris") {
+                //查看执行计划
+                if (sql === 'explain') {
+                    sqlContent = 'explain ' + sqlContent
+                }
             }
             //提交请求
             $.ajax({
@@ -1054,6 +1060,14 @@
                 $("#btn-format").attr('disabled', false);
                 $("#btn-explain").attr('disabled', true);
             } else if (optgroup === "ClickHouse") {
+                if (change) {
+                    $("#div-table_name").show();
+                    $("#div-schema_name").hide();
+                    redis_help_tab_remove();
+                }
+                $("#btn-format").attr('disabled', false);
+                $("#btn-explain").attr('disabled', false);
+            } else if (optgroup === "Doris") {
                 if (change) {
                     $("#div-table_name").show();
                     $("#div-schema_name").hide();
@@ -1311,42 +1325,17 @@
                     },
                     success: function (data) {
                         if (data.status === 0) {
-                            var result = data['data'];
-                            $("#optgroup-mysql").empty();
-                            $("#optgroup-mssql").empty();
-                            $("#optgroup-redis").empty();
-                            $("#optgroup-pgsql").empty();
-                            $("#optgroup-mongo").empty();
-                            $("#optgroup-phoenix").empty();
-                            $("#optgroup-odps").empty();
-                            $("#optgroup-clickhouse").empty();
-                            for (let i = 0; i < result.length; i++) {
-                                let instance = "<option value=\"" + result[i]['instance_name'] + "\">" + result[i]['instance_name'] + "</option>";
-                                if (result[i]['db_type'] === 'mysql') {
-                                    $("#optgroup-mysql").append(instance);
-                                } else if (result[i]['db_type'] === 'mssql') {
-                                    $("#optgroup-mssql").append(instance);
-                                } else if (result[i]['db_type'] === 'redis') {
-                                    $("#optgroup-redis").append(instance);
-                                } else if (result[i]['db_type'] === 'pgsql') {
-                                    $("#optgroup-pgsql").append(instance);
-                                } else if (result[i]['db_type'] === 'oracle') {
-                                    $("#optgroup-oracle").append(instance);
-                                } else if (result[i]['db_type'] === 'mongo') {
-                                    $("#optgroup-mongo").append(instance);
-                                } else if (result[i]['db_type'] === 'phoenix') {
-                                    $("#optgroup-phoenix").append(instance);
-                                } else if (result[i]['db_type'] === 'odps') {
-                                    $("#optgroup-odps").append(instance);
-                                } else if (result[i]['db_type'] === 'clickhouse') {
-                                    $("#optgroup-clickhouse").append(instance);
+                            $("optgroup[id^='optgroup']").empty();
+                            let result = data['data']
+                            const supportDb = ['mysql', 'mssql', 'redis', 'pgsql', 'oracle', 'mongo', 'phoenix', 'odps', 'clickhouse', 'doris']
+                            for (let i of result) {
+                                let instance = "<option value=\"" + i.instance_name + "\" instance-id=" + i.id + ">" + i.instance_name + "</option>";
+                                if (supportDb.indexOf(i.db_type) !== -1) {
+                                    $("#optgroup-" + i.db_type).append(instance);
                                 }
                             }
-                            $('#instance_name').selectpicker('render');
-                            $('#instance_name').selectpicker('refresh');
-                            $("#db_name").empty();
-                            $('#db_name').selectpicker('render');
-                            $('#db_name').selectpicker('refresh');
+                            $('#instance_name').selectpicker('render').selectpicker('refresh');
+                            $("#db_name").empty().selectpicker('render').selectpicker('refresh');
                         } else {
                             alert(data.msg);
                         }

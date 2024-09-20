@@ -2,6 +2,7 @@
 import logging
 import traceback
 import MySQLdb
+import pymysql
 import re
 
 import schemaobject
@@ -98,6 +99,10 @@ class MysqlEngine(EngineBase):
     def info(self):
         return "MySQL engine"
 
+    def escape_string(self, value: str) -> str:
+        """字符串参数转义"""
+        return pymysql.escape_string(value)
+
     @property
     def auto_backup(self):
         """是否支持备份"""
@@ -152,7 +157,7 @@ class MysqlEngine(EngineBase):
             row[0]
             for row in result.rows
             if row[0]
-            not in ("information_schema", "performance_schema", "mysql", "test", "sys")
+            not in ("information_schema", "performance_schema", "mysql", "test", "sys", "__internal_schema")
         ]
         result.rows = db_list
         return result
@@ -390,6 +395,8 @@ class MysqlEngine(EngineBase):
 
     def get_all_columns_by_tb(self, db_name, tb_name, **kwargs):
         """获取所有字段, 返回一个ResultSet"""
+        db_name = self.escape_string(db_name)
+        tb_name = self.escape_string(tb_name)
         sql = f"""SELECT
             COLUMN_NAME,
             COLUMN_TYPE,
