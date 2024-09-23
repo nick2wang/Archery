@@ -59,6 +59,53 @@ class DorisEngine(MysqlEngine):
         "information_schema",
     ]
 
+    def processlist(self, command_type, **kwargs):
+        """获取连接信息"""
+        base_sql = "select id, user, host, login_time, catalog, db, command, time, state, query_id, ifnull(info,'') as info from information_schema.processlist where 1=1"
+        # escape
+        command_type = pymysql.escape_string(command_type)
+        if not command_type:
+            command_type = "Query"
+        if command_type == "All":
+            sql = base_sql + ""
+        elif command_type == "Not Sleep":
+            sql = "{} and command<>'Sleep'".format(base_sql)
+        else:
+            sql = "{} and command= '{}'".format(base_sql, command_type)
+
+        return self.query("information_schema", sql)
+
+    def get_kill_command(self, thread_ids):
+        """由传入的线程列表生成kill命令"""
+        # 校验传参
+        thread_ids = [int(i) for i in thread_ids if str(i).isdigit()]
+        if not thread_ids:
+            return None
+        sql = "select concat('kill ', id, ';') from information_schema.processlist where id in ({});".format(
+            ",".join(str(tid) for tid in thread_ids)
+        )
+        all_kill_sql = self.query("information_schema", sql)
+        kill_sql = ""
+        for row in all_kill_sql.rows:
+            kill_sql = kill_sql + row[0]
+
+        return kill_sql
+
+    def kill(self, thread_ids):
+        """kill线程"""
+        # 校验传参
+        thread_ids = [int(i) for i in thread_ids if str(i).isdigit()]
+        if not thread_ids:
+            return ResultSet(full_sql="")
+        sql = "select concat('kill ', id, ';') from information_schema.processlist where id in ({});".format(
+            ",".join(str(tid) for tid in thread_ids)
+        )
+        all_kill_sql = self.query("information_schema", sql)
+        kill_sql = ""
+        for row in all_kill_sql.rows:
+            kill_sql = kill_sql + row[0]
+        return self.execute("information_schema", kill_sql)
+
     def execute_check(self, db_name=None, sql=""):
         """上线单执行前的检查, 返回Review set"""
         check_result = ReviewSet(full_sql=sql)

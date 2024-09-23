@@ -68,7 +68,7 @@ def create_kill_session(request):
 
     result = {"status": 0, "msg": "ok", "data": []}
     query_engine = get_engine(instance=instance)
-    if instance.db_type == "mysql":
+    if instance.db_type in ("mysql", "doris"):
         # 判断是RDS还是其他实例
         if AliyunRdsConfig.objects.filter(instance=instance, is_enable=True).exists():
             result = aliyun_create_kill_session(request)
@@ -108,7 +108,7 @@ def kill_session(request):
 
     engine = get_engine(instance=instance)
     r = None
-    if instance.db_type == "mysql":
+    if instance.db_type in ("mysql", "doris"):
         # 判断是RDS还是其他实例
         if AliyunRdsConfig.objects.filter(instance=instance, is_enable=True).exists():
             result = aliyun_kill_session(request)
