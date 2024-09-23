@@ -1183,7 +1183,7 @@ class MongoEngine(EngineBase):
                     cols.append(key)
         return cols
 
-    def current_op(self, command_type):
+    def processlist(self, command_type, **kwargs):
         """
         获取当前连接信息
 

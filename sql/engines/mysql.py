@@ -669,7 +669,7 @@ class MysqlEngine(EngineBase):
         """
         return self.inc_engine.osc_control(**kwargs)
 
-    def processlist(self, db_name, command_type):
+    def processlist(self, command_type, **kwargs):
         """获取连接信息"""
         base_sql = "select id, user, host, db, command, time, state, ifnull(info,'') as info from information_schema.processlist where 1=1"
         # escape
@@ -683,6 +683,7 @@ class MysqlEngine(EngineBase):
         else:
             sql = "{} and command= '{}'".format(base_sql, command_type)
 
+        db_name = kwargs.get("db_name")
         sql += " and db='{}'".format(db_name) if db_name else ""
 
         return self.query("information_schema", sql)
