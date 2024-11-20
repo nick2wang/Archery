@@ -444,54 +444,58 @@
             ],
             [
                 'doris',
-                ["All","Not Sleep","Query"],
+                ["All", "Not Sleep", "Query", "Quit", "Kill"],
                 [{
                     title: '',
                     field: 'checkbox',
                     checkbox: true
                 }, {
+                    title: 'FE',
+                    field: 'FE',
+                    sortable: true
+                }, {
                     title: 'THEEAD ID',
-                    field: 'id',
+                    field: 'Id',
                     sortable: true
                 }, {
                     title: 'USER',
-                    field: 'user',
+                    field: 'User',
                     sortable: true
                 }, {
                     title: 'HOST',
-                    field: 'host',
+                    field: 'Host',
                     sortable: true
                 }, {
                     title: 'TIME(s)',
-                    field: 'time',
+                    field: 'Time',
                     sortable: true
                 }, {
                     title: 'LOGIN TIME',
-                    field: 'login_time',
+                    field: 'LoginTime',
                     sortable: true
                 }, {
                     title: 'CATALOG',
-                    field: 'catalog',
+                    field: 'Catalog',
                     sortable: true
                 }, {
                     title: 'DATABASE',
-                    field: 'db',
+                    field: 'Db',
                     sortable: true
                 }, {
                     title: 'COMMAND',
-                    field: 'command',
+                    field: 'Command',
                     sortable: true
                 }, {
                     title: 'STATE',
-                    field: 'state',
+                    field: 'State',
                     sortable: true
                 }, {
                     title: 'QUERY ID',
-                    field: 'query_id',
+                    field: 'QueryId',
                     sortable: true
                 }, {
                     title: 'INFO',
-                    field: 'info',
+                    field: 'Info',
                     sortable: true,
                     formatter: function (value, row, index) {
                         if (value.length > 20) {
@@ -503,14 +507,14 @@
                     }
                 }, {
                     title: '完整INFO',
-                    field: 'info',
+                    field: 'Info',
                     sortable: true,
                     visible: false // 默认不显示
                 }],
                 function (index, row) {
                     var html = [];
                     $.each(row, function (key, value) {
-                        if (key === 'info') {
+                        if (key === 'Info') {
                             var sql = window.sqlFormatter.format(value);
                             //替换所有的换行符
                             sql = sql.replace(/\r\n/g, "<br>");
@@ -1052,6 +1056,8 @@
                             AllSelectionIds.push(AllSelections[i]['opid'])  // mongo
                         } else if (AllSelections[i]['SID']) {
                             AllSelectionIds.push([AllSelections[i]['SID'],AllSelections[i]['SERIAL#']])  // oracle
+                        } else if (AllSelections[i]['Id']) {
+                            AllSelectionIds.push(AllSelections[i]['Id'])  // doris
                         }
                     }
                     var instance_name = $("#instance_name").val();
@@ -1101,6 +1107,8 @@
                         AllSelectionIds.push(AllSelections[i]['opid'])  // mongo
                     } else if (AllSelections[i]['SID']) {
                         AllSelectionIds.push([AllSelections[i]['SID'],AllSelections[i]['SERIAL#']])  // oracle
+                    } else if (AllSelections[i]['Id']) {
+                        AllSelectionIds.push(AllSelections[i]['Id'])  // doris
                     }
                 }
                 var instance_name = $("#instance_name").val();

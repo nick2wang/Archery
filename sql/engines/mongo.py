@@ -426,7 +426,7 @@ class MongoEngine(EngineBase):
                     r = self.exec_cmd(exec_sql, db_name)
                     end = time.perf_counter()
                     line += 1
-                    logger.warning("执行结果1：" + r)
+                    logger.warning("执行结果1：" + f"--------------{r}--------------")
                     # 如果执行中有错误
                     rz = r.replace(" ", "").replace('"', "")
                     tr = 1
@@ -454,6 +454,7 @@ class MongoEngine(EngineBase):
                         )
                     else:
                         try:
+                            r = r.strip("\n")
                             r_lines = r.split("\n")
                             if len(r_lines) > 1:
                                 r = r_lines[-1]

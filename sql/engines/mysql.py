@@ -812,7 +812,7 @@ class MysqlEngine(EngineBase):
 
         return self.query("information_schema", sql)
 
-    def get_long_transaction(self, thread_time=3):
+    def get_long_transaction(self):
         """获取长事务"""
         sql = """select trx.trx_started,
         trx.trx_state,
@@ -838,12 +838,7 @@ class MysqlEngine(EngineBase):
         FROM information_schema.INNODB_TRX trx
         INNER JOIN information_schema.PROCESSLIST p
         ON trx.trx_mysql_thread_id = p.id
-        WHERE trx.trx_state = 'RUNNING'
-        AND p.COMMAND = 'Sleep'
-        AND p.time > {}
-        ORDER BY trx.trx_started ASC;""".format(
-            thread_time
-        )
+        ORDER BY trx.trx_started ASC;"""
 
         return self.query("information_schema", sql)
 
