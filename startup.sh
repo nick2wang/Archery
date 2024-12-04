@@ -1,6 +1,6 @@
 #!/bin/bash
 
-cd /data/Archery
+cd /data/archery
 
 echo 切换python运行环境
 source /data/venv4archery/bin/activate
