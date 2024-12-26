@@ -717,7 +717,7 @@ class MysqlEngine(EngineBase):
             kill_sql = kill_sql + row[0]
         return self.execute("information_schema", kill_sql)
 
-    def tablesapce(self, db_name, sort, order, offset=0, row_count=14):
+    def tablesapce(self, db_name, sort, order, search, offset=0, row_count=14):
         """获取表空间信息"""
         db_filter = "and table_schema='{}'".format(db_name) if db_name else ""
         sql = """
@@ -734,19 +734,21 @@ class MysqlEngine(EngineBase):
         FROM information_schema.tables 
         WHERE table_schema NOT IN ('information_schema', 'performance_schema', 'mysql', 'test', 'sys')
           {}
+          and (table_schema like '%{}%' or table_name like '%{}%')
           ORDER BY {} {} 
         LIMIT {},{};""".format(
-            db_filter, sort, order, offset, row_count
+            db_filter, search, search, sort, order, offset, row_count
         )
         return self.query("information_schema", sql)
 
-    def tablesapce_num(self, db_name):
+    def tablesapce_num(self, db_name, search):
         """获取表空间数量"""
         db_filter = "and table_schema='{}'".format(db_name) if db_name else ""
         sql = """
         SELECT count(*)
         FROM information_schema.tables 
-        WHERE table_schema NOT IN ('information_schema', 'performance_schema', 'mysql', 'test', 'sys') {}""".format(db_filter)
+        WHERE table_schema NOT IN ('information_schema', 'performance_schema', 'mysql', 'test', 'sys') {}
+        and (table_schema like '%{}%' or table_name like '%{}%')""".format(db_filter, search, search)
         return self.query("information_schema", sql)
 
     def trxandlocks(self):

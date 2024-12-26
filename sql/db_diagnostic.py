@@ -144,6 +144,7 @@ def tablesapce(request):
     sort = request.POST.get("sortName")
     order = request.POST.get("sortOrder")
     db_name = request.POST.get("db_name")
+    search = request.POST.get("search")
     try:
         instance = user_instances(request.user).get(instance_name=instance_name)
     except Instance.DoesNotExist:
@@ -156,8 +157,8 @@ def tablesapce(request):
         if AliyunRdsConfig.objects.filter(instance=instance, is_enable=True).exists():
             result = aliyun_sapce_status(request)
         else:
-            query_result = query_engine.tablesapce(db_name, sort, order, offset, limit)
-            r = query_engine.tablesapce_num(db_name)
+            query_result = query_engine.tablesapce(db_name, sort, order, search, offset, limit)
+            r = query_engine.tablesapce_num(db_name, search)
             total = r.rows[0][0]
     elif instance.db_type == "oracle":
         query_result = query_engine.tablespace(offset, limit)
