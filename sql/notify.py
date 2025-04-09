@@ -220,7 +220,7 @@ def notify_for_audit(audit_id, **kwargs):
 
     # 准备消息格式
     if status == WorkflowDict.workflow_status["audit_wait"]:  # 申请阶段
-        msg_title = "[{}]新的工单申请#{}".format(workflow_type_display, audit_id)
+        msg_title = "[{}#{}]新的工单申请 - {}".format(workflow_type_display, audit_id, workflow_from)
         # 接收人，发送给该资源组内对应权限组所有的用户
         auth_group_names = Group.objects.get(id=audit_detail.current_audit).name
         msg_to = auth_group_users([auth_group_names], audit_detail.group_id)
