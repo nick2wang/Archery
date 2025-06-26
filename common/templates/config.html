@@ -618,6 +618,17 @@
                                                   placeholder="钉钉部门id，使用逗号分隔">{{ config.ding_dept_ids }}</textarea>
                                     </div>
                                 </div>
+                                <div class="form-group">
+                                    <label for="ding_robot_code"
+                                           class="col-sm-4 control-label">RobotCode</label>
+                                    <div class="col-sm-5">
+                                        <input type="text" class="form-control"
+                                               id="ding_robot_code"
+                                               key="ding_robot_code"
+                                               value="{{ config.ding_robot_code }}"
+                                               placeholder="发DING消息的机器人ID">
+                                    </div>
+                                </div>
                             </div>
 
                             <div class="form-group">

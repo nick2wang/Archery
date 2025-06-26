@@ -109,6 +109,33 @@ def update_dingding_todo(taskid, user_from):
         return None
 
 
+def send_ding(user_id_list, content):
+    """
+        发送DING
+        remindType：1.应用内DING, 2.短信DING, 3.电话DING
+    """
+    access_token = get_access_token()
+    robot_code = SysConfig().get("ding_robot_code")
+    api_url = f"https://api.dingtalk.com/v1.0/robot/ding/send"
+    data = {
+        "robotCode": robot_code,
+        "remindType": 1,
+        "receiverUserIdList": user_id_list,
+        "content": content
+    }
+    headers = {
+        "Content-Type": "application/json",
+        "x-acs-dingtalk-access-token": access_token,
+    }
+    resp = requests.post(url=api_url, json=data, headers=headers, timeout=5)
+    resp_json = resp.json()
+    logger.warning(resp_json)
+    if resp.status_code == 200:
+        logger.warning(f"向 {user_id_list} 发送DING成功")
+    else:
+        logger.error(f"向 {user_id_list} 发送DING出错:{resp}")
+
+
 def get_ding_user_id(username):
     """更新用户ding_user_id"""
     try:

@@ -379,6 +379,12 @@ def notify_for_execute(workflow):
         feishu_webhook=feishu_webhook,
         qywx_webhook=qywx_webhook,
     )
+    # 如果执行异常，向申请人发DING通知
+    if workflow.status == "workflow_exception":
+        ding_api.send_ding(
+            [Users.objects.get(username=workflow.engineer).ding_user_id],
+            "[Archery]工单执行异常#{}，点击查看详情：{}".format(audit_id, url),
+        )
 
     # DDL通知
     if sys_config.get("ddl_notify_auth_group") and workflow.status == "workflow_finish":
